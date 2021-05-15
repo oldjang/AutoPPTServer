@@ -13,15 +13,18 @@ from AutoPPTServer.settings import BASE_DIR
 from api.AutoPPTCut import Server
 from api.models import Template, User
 from api.serializers import TemplateSerializers
-from api.utils import Information
+from api.utils import Information, get_username
 import json
 
 
 class LoginView(APIView):
     def post(self, request):
         json_data = json.loads(request.body.decode("utf-8"))
-        username = json_data['username']
-        if True:
+        app_id = json_data['appId']
+        app_secret = json_data["appSecret"]
+        code = json_data["code"]
+        username, err = get_username(app_id, app_secret, code)
+        if err == 0:
             if User.objects.filter(username=username).count() == 0:
                 os.mkdir(os.path.join(BASE_DIR, "user\\" + username))
                 user = User(username=username)
@@ -127,4 +130,4 @@ class GetPPTView(APIView):
         ppt_maker = Server()
         ppt_maker.makePPT(logic_cut, display_cut, page_num, title, template_path, dst_name)
 
-        return "127.0.0.1:8000/" + dst_path.replace('\\', '/')
+        return HttpResponse("127.0.0.1:8000/" + dst_path.replace('\\', '/'))

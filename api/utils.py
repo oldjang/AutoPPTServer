@@ -1,3 +1,8 @@
+import json
+
+import requests
+
+
 class Information:
     def __init__(self, title, page_num, cut_num, template_id, file_url):
         self.title = title
@@ -40,3 +45,11 @@ class InformationStore:
 
     def get(self, name):
         return self.data[name]
+
+
+def get_username(app_id, app_secret, code):
+    url = "api.weixin.qq.com/sns/jscode2session"
+    params = {"appid": app_id, "secret": app_secret, "js_code": code, "grant_type": "authorization_code"}
+    res = requests.get(url=url, params=params)
+    json_data = json.loads(res.text)
+    return json_data["openid"], json_data["errcode"]
