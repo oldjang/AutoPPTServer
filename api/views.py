@@ -22,7 +22,8 @@ class LoginView(APIView):
         json_data = json.loads(request.body.decode("utf-8"))
         username = json_data['username']
         if True:
-            if User.objects.filter(username=username):
+            if User.objects.filter(username=username).count() == 0:
+                os.mkdir(os.path.join(BASE_DIR, "user\\" + username))
                 user = User(username=username)
                 user.save()
             response = HttpResponse("Login OK")
@@ -35,7 +36,7 @@ class LoginView(APIView):
 class TemplatesView(APIView):
     def get(self, request):
         username = request.get_signed_cookie('username', salt="salt")
-        if User.objects.filter(username=username):
+        if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
 
         templates = Template.objects.all()
@@ -46,7 +47,7 @@ class TemplatesView(APIView):
 class UploadView(APIView):
     def post(self, request):
         username = request.get_signed_cookie('username', salt="salt")
-        if User.objects.filter(username=username):
+        if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
 
         file = request.FILES.get("file", None)
@@ -62,7 +63,7 @@ class UploadView(APIView):
 class InformationView(APIView):
     def post(self, request):
         username = request.get_signed_cookie('username', salt="salt")
-        if User.objects.filter(username=username):
+        if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
 
         json_data = json.loads(request.body.decode("utf-8"))
@@ -85,7 +86,7 @@ class InformationView(APIView):
 class DisplayView(APIView):
     def post(self, request):
         username = request.get_signed_cookie('username', salt="salt")
-        if User.objects.filter(username=username):
+        if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
 
         information = information_store.get(username)
@@ -108,7 +109,7 @@ class DisplayView(APIView):
 class GetPPTView(APIView):
     def post(self, request):
         username = request.get_signed_cookie('username', salt="salt")
-        if User.objects.filter(username=username):
+        if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
 
         information = information_store.get(username)
@@ -121,9 +122,9 @@ class GetPPTView(APIView):
         title = information.title
         template = Template.objects.get(id=information.template_id)
         template_path = template.template_url
-        dst_path = username+"\\"+str(int(time.time))+".pptx"
-        dst_name = os.path.join(BASE_DIR,dst_path)
+        dst_path = "user\\" + username + "\\" + str(int(time.time)) + ".pptx"
+        dst_name = os.path.join(BASE_DIR, dst_path)
         ppt_maker = Server()
         ppt_maker.makePPT(logic_cut, display_cut, page_num, title, template_path, dst_name)
 
-        return "127.0.0.1:8000/"+dst_path.replace('\\', '/')
+        return "127.0.0.1:8000/" + dst_path.replace('\\', '/')
