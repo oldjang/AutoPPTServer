@@ -46,10 +46,23 @@ class InformationStore:
     def get(self, name):
         return self.data[name]
 
-
+'''
 def get_username(app_id, app_secret, code):
-    url = "api.weixin.qq.com/sns/jscode2session"
+    url = "https://api.weixin.qq.com/sns/jscode2session"
     params = {"appid": app_id, "secret": app_secret, "js_code": code, "grant_type": "authorization_code"}
     res = requests.get(url=url, params=params)
-    json_data = json.loads(res.text)
-    return json_data["openid"], json_data["errcode"]
+    json_data = res.json()
+    if "errcode" in json_data:
+        return json_data["errmsg"], json_data["errcode"]
+    else:
+        return json_data["openid"], 0
+'''
+def get_username(app_id, app_secret, code):
+    url = "https://api.weixin.qq.com/sns/jscode2session"
+    params = {"appid": app_id, "secret": app_secret, "js_code": code, "grant_type": "authorization_code"}
+    res = requests.get(url=url, params=params)
+    data = res.json()
+    if "errcode" in data:
+        return data["errmsg"], data["errcode"]
+    else:
+        return data["openid"], 0
