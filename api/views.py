@@ -16,7 +16,27 @@ from api.serializers import TemplateSerializers
 from api.utils import Information, get_username
 import json
 
-
+'''
+class LoginView(APIView):
+    def post(self, request):
+        json_data = json.loads(request.body.decode("utf-8"))
+        app_id = json_data['appId']
+        app_secret = json_data["appSecret"]
+        code = json_data["code"]
+        username, err = get_username(app_id, app_secret, code)
+        # err = 0
+        # username = app_id
+        if err == 0:
+            if User.objects.filter(username=username).count() == 0:
+                os.mkdir(os.path.join(BASE_DIR, "user\\" + username))
+                user = User(username=username)
+                user.save()
+            response = HttpResponse("Login OK")
+            response.set_signed_cookie("username", username, salt='salt')
+            return response
+        else:
+            return HttpResponse("Login Failed")
+'''
 class LoginView(APIView):
     def post(self, request):
         json_data = json.loads(request.body.decode("utf-8"))
@@ -49,6 +69,7 @@ class TemplatesView(APIView):
 
 class UploadView(APIView):
     def post(self, request):
+        print(request.COOKIES)
         username = request.get_signed_cookie('username', salt="salt")
         if User.objects.filter(username=username).count() == 0:
             return HttpResponse("Failed")
@@ -56,11 +77,12 @@ class UploadView(APIView):
         file = request.FILES.get("file", None)
         if not file:
             return HttpResponse("-1")
+        print("OK")
         save_file = open(os.path.join(BASE_DIR, 'file\\' + file.name), 'wb+')
         for chunk in file.chunks():
             save_file.write(chunk)
         save_file.close()
-        return HttpResponse(os.path.join(BASE_DIR, 'file\\' + file.name))
+        return JsonResponse({"path":os.path.join(BASE_DIR, 'file\\' + file.name)})
 
 
 class InformationView(APIView):
@@ -106,7 +128,7 @@ class DisplayView(APIView):
         ppt_maker = Server()
         display_list = ppt_maker.getDisplayCut(logic_cut_list, page_num)
 
-        return JsonResponse(display_list, safe=False)
+        return JsonResponse({"display":display_list}, safe=False)
 
 
 class GetPPTView(APIView):
@@ -130,4 +152,4 @@ class GetPPTView(APIView):
         ppt_maker = Server()
         ppt_maker.makePPT(logic_cut, display_cut, page_num, title, template_path, dst_name)
 
-        return HttpResponse("127.0.0.1:8000/" + dst_path.replace('\\', '/'))
+        return JsonResponse({"url":"127.0.0.1:8000/" + dst_path.replace('\\', '/')})
